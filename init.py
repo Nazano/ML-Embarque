@@ -3,8 +3,8 @@ import pandas as pd
 
 data_path = 'data/'
 
-if os.path.isfile(data_path + 'new_data.csv'):
-    os.remove(data_path + "new_data.csv")
+if os.path.isfile(data_path + 'data_new.csv'):
+    os.remove(data_path + "data_new.csv")
 df_save = pd.read_csv(data_path + "data_save.csv", index_col=0)
 
 df_test = df_save.sample(n=3000)

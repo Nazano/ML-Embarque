@@ -5,7 +5,7 @@ import fasttext
 import flask
 import random
 import json
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Pool
 import os
 import pandas as pd
 
@@ -13,7 +13,6 @@ import pandas as pd
 api = flask.Flask(__name__)
 data_path = 'data/'
 has_to_load = Value('d', 0)
-model = None
 
 def preprocess_text(text):
     '''
@@ -44,9 +43,7 @@ def preprocess_text(text):
 
     return " ".join(tokens)
 
-def train_model(has_to_load):
-    #if __name__ == "__main__":
-    #    return
+def train_model():
     while True:
         if not os.path.isfile(data_path + 'data_new.csv'):
             continue
@@ -55,9 +52,6 @@ def train_model(has_to_load):
 
         if len(df_new) < 3000:
             continue
-        print('module name:', __name__)
-        print('parent process:', os.getppid())
-        print('process id:', os.getpid())
 
         print("Starting to train...")
 
@@ -71,7 +65,10 @@ def train_model(has_to_load):
         df_train['text'] = df_train['text'].apply(preprocess_text)
 
         df_new = df_new.drop(df_new_sample.index)
-        df_new.to_csv(data_path + "data_new.csv")
+        if len(df_new):
+            df_new.to_csv(data_path + "data_new.csv")
+        else:
+            os.remove(data_path + 'data_new.csv')
 
         df_old = pd.concat([df_new_sample, df_old], ignore_index=False)
         df_new.to_csv(data_path + "data_old.csv")
@@ -85,24 +82,17 @@ def train_model(has_to_load):
                                           loss='softmax', verbose=1)
        # os.remove('fasttext_train.txt')
 
-        model.save_model("model_fasttext.bin")
+        model.save_model("/home/louzo9818/Downloads/ML-Embarque/model_fasttext.bin")
 
         print("Training finished.")
 
-        has_to_load.value = 1
 
 
 
 @api.route('/predict', methods=['POST'])
 def predict():
-    print(has_to_load.value)
-    if has_to_load.value:
-        has_to_load.value = 0
-        model = fasttext.load_model("model_fasttext.bin")
-    if not model:
-        print("Model is not ready.")
-        return ""
-    text = request.args.get('text')
+    model = fasttext.load_model("/home/louzo9818/Downloads/ML-Embarque/model_fasttext.bin")
+    text = flask.request.get_json()['text']
     label, score = model.predict(preprocess_text(text))
 
     response = json.dumps(
@@ -117,8 +107,8 @@ def predict():
 def hello():
     return "Prediction REST API"
 
-if __name__ == '__main__':
-    p_train_model = Process(target=train_model, args=(has_to_load,))
-    p_train_model.start()
-    api.run(debug=True)
+#if __name__ == '__main__':
+Process(target=train_model).start()
+model = fasttext.load_model("/home/louzo9818/Downloads/ML-Embarque/model_fasttext.bin")
+api.run(debug=True)
 

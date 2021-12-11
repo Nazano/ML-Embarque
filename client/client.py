@@ -8,7 +8,7 @@ class Client:
         data = {
             "text" : text
         }
-        response = requests.post(url=f"{self._url}/predict", data=data)
+        response = requests.post(url=f"{self._url}/predict", json=data)
         return response.json()
         
     def _test_conn(self):
