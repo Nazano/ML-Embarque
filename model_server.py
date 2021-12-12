@@ -104,6 +104,7 @@ def predict():
             "score": score[0]
         }
     )
+    print(response)
     return response
 
 @api.route('/')
