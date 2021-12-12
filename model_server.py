@@ -8,6 +8,7 @@ import json
 from multiprocessing import Process, Value, Pool
 import os
 import pandas as pd
+import time
 
 #nlp = en_core_web_sm.load()
 api = flask.Flask(__name__)
@@ -48,6 +49,8 @@ def train_model():
         if not os.path.isfile(data_path + 'data_new.csv'):
             continue
 
+        time.sleep(1)
+
         df_new = pd.read_csv(data_path + 'data_new.csv', index_col=0)
 
         if len(df_new) < 3000:
@@ -71,7 +74,7 @@ def train_model():
             os.remove(data_path + 'data_new.csv')
 
         df_old = pd.concat([df_new_sample, df_old], ignore_index=False)
-        df_new.to_csv(data_path + "data_old.csv")
+        df_old.to_csv(data_path + "data_old.csv")
 
         with open('fasttext_train.txt', 'w') as f:
             for each_text, each_label in zip(df_train['text'], df_train['label']):
@@ -82,7 +85,7 @@ def train_model():
                                           loss='softmax', verbose=1)
        # os.remove('fasttext_train.txt')
 
-        model.save_model("/home/louzo9818/Downloads/ML-Embarque/model_fasttext.bin")
+        model.save_model("model_fasttext.bin")
 
         print("Training finished.")
 
@@ -91,7 +94,7 @@ def train_model():
 
 @api.route('/predict', methods=['POST'])
 def predict():
-    model = fasttext.load_model("/home/louzo9818/Downloads/ML-Embarque/model_fasttext.bin")
+    model = fasttext.load_model("model_fasttext.bin")
     text = flask.request.get_json()['text']
     label, score = model.predict(preprocess_text(text))
 
@@ -109,6 +112,6 @@ def hello():
 
 #if __name__ == '__main__':
 Process(target=train_model).start()
-model = fasttext.load_model("/home/louzo9818/Downloads/ML-Embarque/model_fasttext.bin")
-api.run(debug=True)
+model = fasttext.load_model("model_fasttext.bin")
+api.run(debug=False)
 
