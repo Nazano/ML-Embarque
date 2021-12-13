@@ -12,9 +12,14 @@ class Interface:
             return
 
         response = self.client.send_prediction(text)
-        self.label_result.config(fg='green' if int(response['label']) else 'red')
-        self.label_result_text.set(
-            f"{'Positive' if int(response['label']) else 'Negative'} at {round(float(response['score']), 2)}")
+
+        if response.status_code != 200:
+            self.label_result.config(fg='blue')
+            self.label_result_text.set(response.text)
+        else:
+            self.label_result.config(fg='green' if int(response.json()['label']) else 'red')
+            self.label_result_text.set(
+                f"{'Positive' if int(response.json()['label']) else 'Negative'}")#" at {round(float(response['score']), 2)}")
 
     def _handle_exit(self):
         self.root.destroy()

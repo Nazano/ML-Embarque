@@ -9,8 +9,9 @@ class Client:
             "text" : text
         }
         response = requests.post(url=f"{self._url}/predict", json=data)
-        return response.json()
-        
+
+        return response
+
     def _test_conn(self):
         request_response = requests.head(self._url)
         status_code = request_response.status_code
