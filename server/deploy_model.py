@@ -9,7 +9,7 @@ def deploy_and_run(image_name="sentiment"):
 
     try:
         image = client.images.get(image_name)
-    except docker.errors.ImageNoteFound:
+    except docker.errors.ImageNotFound:
         image = None
 
     if image:
